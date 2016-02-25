@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.min.js"></script>
+</head>
+<body ng-controller="View1Ctrl">
+<h1>Welcome to the Sentiment Analysis of Movies</h1><br><br><br>
+Enter any movie name : <input type="text" ng-model="searchtext" id="search">
+
+<button ng-click="searchmovie(searchtext)">Search</button>
+<br><br>
+<li ng-repeat="movie in MovieNames">
+    <a href="" ng-click="getAnalysis(movie)">{{ movie.name }}</a>
+</li>
+<br><br><br>
+<div>
+<table border="1">
+    <tr>
+        <th>Analysis Score</th>
+        <th>Analysis Result</th>
+    </tr>
+    <tr>
+        <td>{{ scoreSentiment }}</td>
+        <td>{{ typeSentiment }}</td>
+    </tr>
+</table>
+</div>
+</body>
+</html>
+
+<script>
+    var app = angular.module('myApp', []);
+    app.controller('View1Ctrl', function($scope, $http) {
+        var i;
+        $scope.MovieNames = new Array();
+        $scope.searchmovie=function(search) {
+            $http.get("http://bechdeltest.com/api/v1/getMoviesByTitle?title=" + search)
+                    .then(function (response) {
+                        for(i=0;i<response.data.length;i++) {
+
+                            $scope.MovieNames[i] = { "name" : response.data[i].title };
+                        }
+                    });
+        }
+        $scope.getAnalysis = function(word){
+
+            var callback = $http.get("http://gateway-a.watsonplatform.net/calls/text/TextGetTextSentiment" +
+                    "?apikey=b01d82052810e322662f01a4b8ef52345199d85b" +
+                    "&outputMode=json&text=" + word.id);
+            callback.success(function (data) {
+                if(data!=null && data.docSentiment!=null)
+                {
+                    $scope.typeSentiment = data.docSentiment.type;
+                    $scope.scoreSentiment = data.docSentiment.score;
+                }
+            })
+        }
+    });
+
+</script>
